@@ -1,5 +1,12 @@
-requests
-pandas
+
 beautifulsoup4
+joblib
 lxml
+numpy
+pandas
 playwright
+python-dateutil
+pytz
+requests
+scikit-learn
+xgboost
