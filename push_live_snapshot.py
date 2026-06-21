@@ -9,7 +9,7 @@ import pandas as pd
 UPLOAD_URL = "https://azkaalii-psx-ai-backend.hf.space/upload-live-snapshot"
 UPLOAD_TOKEN = os.environ.get("UPLOAD_TOKEN", "psx-live-123")
 
-SCRAPER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "psx_full_backup (1)", "psx_v4.py")
+SCRAPER_PATH = Path(__file__).resolve().parent / "psx_full_backup (1)" / "psx_v4.py"
 
 CSV_CANDIDATES = [
     Path.home() / "Desktop/backend/psx_full_backup (1)/output/psx_all_index_constituents.csv",
