@@ -45,12 +45,24 @@ def run_psx_v4_scraper():
 
 
 def get_latest_csv_path():
-    existing = [p for p in CSV_CANDIDATES if p.exists()]
+    repo_root = Path(__file__).resolve().parent
 
-    if not existing:
+    candidates = []
+    for csv_path in repo_root.rglob("psx_all_index_constituents.csv"):
+        if csv_path.is_file():
+            candidates.append(csv_path)
+
+    if not candidates:
+        print("CSV search root:", repo_root)
+        print("Available CSV files found in repo:")
+        for csv_path in repo_root.rglob("*.csv"):
+            print(" -", csv_path)
+
         raise FileNotFoundError("No psx_all_index_constituents.csv found after scraper run.")
 
-    return max(existing, key=lambda p: p.stat().st_mtime)
+    latest_csv = max(candidates, key=lambda p: p.stat().st_mtime)
+    print("Using latest CSV:", latest_csv)
+    return latest_csv
 
 
 def get_latest_snapshot_rows(csv_path):
