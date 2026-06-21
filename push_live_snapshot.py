@@ -45,23 +45,79 @@ def run_psx_v4_scraper():
 
 
 def get_latest_csv_path():
-    repo_root = Path(__file__).resolve().parent
+    import pandas as pd
+
+    roots = [
+        Path(__file__).resolve().parent,
+        Path.cwd(),
+        Path("/home/runner/work/psx-live-updater/psx-live-updater"),
+        Path("/home/runner/Desktop/backend"),
+        Path("/home/runner/Desktop/backend/output"),
+        Path.home() / "Desktop" / "backend",
+        Path.home() / "Desktop" / "backend" / "output",
+    ]
 
     candidates = []
-    for csv_path in repo_root.rglob("psx_all_index_constituents.csv"):
-        if csv_path.is_file():
-            candidates.append(csv_path)
+    seen = set()
+
+    for root in roots:
+        if not root.exists():
+            continue
+
+        for csv_path in root.rglob("psx_all_index_constituents.csv"):
+            try:
+                resolved = csv_path.resolve()
+
+                if resolved in seen:
+                    continue
+
+                seen.add(resolved)
+
+                if resolved.is_file() and resolved.stat().st_size > 0:
+                    df = pd.read_csv(resolved, nrows=5)
+
+                    timestamp = ""
+                    if "ScrapeTimestamp" in df.columns:
+                        timestamp = str(df["ScrapeTimestamp"].dropna().astype(str).max())
+
+                    candidates.append({
+                        "path": resolved,
+                        "mtime": resolved.stat().st_mtime,
+                        "size": resolved.stat().st_size,
+                        "timestamp": timestamp,
+                    })
+
+            except Exception as e:
+                print("CSV candidate skipped:", csv_path, e)
+
+    print("CSV candidates found:")
+    for item in candidates:
+        print(
+            " -",
+            item["path"],
+            "| timestamp=",
+            item["timestamp"],
+            "| mtime=",
+            item["mtime"],
+            "| size=",
+            item["size"],
+        )
 
     if not candidates:
-        print("CSV search root:", repo_root)
-        print("Available CSV files found in repo:")
-        for csv_path in repo_root.rglob("*.csv"):
-            print(" -", csv_path)
-
         raise FileNotFoundError("No psx_all_index_constituents.csv found after scraper run.")
 
-    latest_csv = max(candidates, key=lambda p: p.stat().st_mtime)
+    with_timestamp = [item for item in candidates if item["timestamp"]]
+
+    if with_timestamp:
+        latest_item = max(with_timestamp, key=lambda item: item["timestamp"])
+    else:
+        latest_item = max(candidates, key=lambda item: item["mtime"])
+
+    latest_csv = latest_item["path"]
+
     print("Using latest CSV:", latest_csv)
+    print("Selected CSV timestamp:", latest_item["timestamp"])
+
     return latest_csv
 
 
