@@ -44,12 +44,18 @@ jobs:
         run: |
           python persist_latest_csv.py
 
+      - name: Verify latest CSV exists
+        run: |
+          echo "Checking generated latest CSV..."
+          ls -lah data/latest || true
+          test -s data/latest/psx_all_index_constituents.csv
+
       - name: Commit latest CSV if changed
         run: |
-          git config user.name "psx-live-bot"
-          git config user.email "psx-live-bot@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/latest/psx_all_index_constituents.csv
+          git add -f data/latest/psx_all_index_constituents.csv
 
           if git diff --cached --quiet; then
             echo "No CSV changes to commit."
