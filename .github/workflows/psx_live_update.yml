@@ -58,11 +58,21 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          echo "Saving generated CSV before syncing repo..."
+          cp data/latest/psx_all_index_constituents.csv /tmp/psx_all_index_constituents.csv
+
+          echo "Syncing with latest origin/main to avoid push conflicts..."
+          git fetch origin main
+          git reset --hard origin/main
+
+          mkdir -p data/latest
+          cp /tmp/psx_all_index_constituents.csv data/latest/psx_all_index_constituents.csv
+
           git add -f data/latest/psx_all_index_constituents.csv
 
           if git diff --cached --quiet; then
             echo "No CSV changes to commit."
           else
             git commit -m "Update latest PSX live CSV"
-            git push
+            git push origin main
           fi
