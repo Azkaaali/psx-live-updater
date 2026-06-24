@@ -1,0 +1,51 @@
+name: Update Permanent PSX History
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-permanent-psx-history
+  cancel-in-progress: true
+
+jobs:
+  update-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas
+
+      - name: Update permanent history from latest CSV
+        run: python scripts/update_history_from_latest.py
+
+      - name: Commit history if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/history/psx_all_index_constituents_history.csv
+
+          if git diff --cached --quiet; then
+            echo "No history change."
+            exit 0
+          fi
+
+          git commit -m "Update permanent PSX history"
+          git pull --rebase origin main
+          git push origin main
