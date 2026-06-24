@@ -1,0 +1,31 @@
+name: Ping Backend For PSX History
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+
+concurrency:
+  group: ping-backend-history
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ping deployed backend prediction route
+        run: |
+          BASE="https://azkaalii-psx-ai-backend.hf.space"
+
+          echo "UTC time: $(date -u)"
+
+          echo "Calling /predict to trigger CSV sync and history append..."
+          curl -L --retry 3 --retry-delay 10 --max-time 90 -sS \
+            -X POST "$BASE/predict" \
+            -H "Content-Type: application/json" \
+            -d '{"symbol":"OGDC"}'
+
+          echo ""
+          echo "Done."
