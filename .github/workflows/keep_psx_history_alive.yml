@@ -1,0 +1,38 @@
+name: Keep PSX History Alive
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+
+concurrency:
+  group: keep-psx-history-alive
+  cancel-in-progress: true
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Trigger backend live sync and history append
+        run: |
+          set -e
+
+          BASE="https://azkaalii-psx-ai-backend.hf.space"
+
+          echo "UTC time: $(date -u)"
+
+          echo "Checking backend status..."
+          curl -L --retry 3 --retry-delay 10 --max-time 90 -sS \
+            "$BASE/debug-live-status" || true
+
+          echo ""
+          echo "Triggering prediction route to sync latest PSX CSV and append history..."
+          curl -L --retry 3 --retry-delay 10 --max-time 90 -sS \
+            -X POST "$BASE/predict" \
+            -H "Content-Type: application/json" \
+            -d '{"symbol":"OGDC"}'
+
+          echo ""
+          echo "Done."
