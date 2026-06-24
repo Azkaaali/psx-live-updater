@@ -3,7 +3,10 @@ name: Update Permanent PSX History
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/5 * * * *'
+    # Pakistan time 08:00–15:55, Monday–Friday
+    - cron: '*/5 3-10 * * 1-5'
+    # Pakistan time 16:00–16:30, Monday–Friday
+    - cron: '0-30/5 11 * * 1-5'
 
 permissions:
   contents: write
